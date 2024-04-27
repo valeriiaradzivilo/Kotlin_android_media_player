@@ -3,11 +3,11 @@ package com.example.lab4_android_media_player
 import android.app.Service
 import android.content.Intent
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
+import androidx.core.net.toUri
 
-class MusicPlayerService(private val musicFile: Uri) : Service() {
+class MusicPlayerService : Service() {
 
     private lateinit var mediaPlayer: MediaPlayer
     private val binder = MusicBinder()
@@ -20,10 +20,14 @@ class MusicPlayerService(private val musicFile: Uri) : Service() {
         return binder
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        mediaPlayer = MediaPlayer.create(this, musicFile)
-        mediaPlayer.isLooping = true
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val musicFileUri = intent?.getStringExtra("data")?.toUri()
+        if (musicFileUri != null) {
+            mediaPlayer = MediaPlayer.create(this, musicFileUri)
+            mediaPlayer.isLooping = true
+            startMusic()
+        }
+        return super.onStartCommand(intent, flags, startId)
     }
 
     fun startMusic() {
@@ -42,9 +46,4 @@ class MusicPlayerService(private val musicFile: Uri) : Service() {
         super.onDestroy()
         mediaPlayer.release()
     }
-
-//    private fun createNotification(): Notification {
-//        // Create a notification channel and notification builder
-//        // Return the built notification
-//    }
 }
