@@ -1,10 +1,12 @@
 package com.example.lab4_android_media_player
 
 import android.content.ContentResolver
-import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
@@ -13,7 +15,7 @@ class MainActivity : AppCompatActivity() {
         const val TAG = "MainActivity"
     }
 
-    private val audioList = mutableListOf<Uri>()
+    private val audioList = mutableListOf<File>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +24,16 @@ class MainActivity : AppCompatActivity() {
 
         val mp3Files = getAllMp3Files(contentResolver)
         print(mp3Files)
+
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        //Get file from uri
+
+        for (mp3File in mp3Files) {
+            audioList.add(File(mp3File))
+        }
+        recyclerView.adapter = Mp3Adapter(audioList)
 
     }
 
