@@ -11,6 +11,8 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.View
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -60,19 +62,25 @@ class MainActivity : AppCompatActivity() {
             requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
         }
 
+        val progressBar: ProgressBar = findViewById(R.id.progressBar)
+
 
         val bottomAppBar: BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomAppBar.setOnItemSelectedListener { item ->
             if (item.itemId == R.id.nav_music) {
-
+                progressBar.visibility = View.VISIBLE
                 fileList.clear()
                 fileList.addAll(getAllMp3Files(contentResolver).map { File(it) })
+                progressBar.visibility = View.GONE
                 recyclerView.adapter = Mp3Adapter(fileList)
             } else {
+                progressBar.visibility = View.VISIBLE
                 scanForMedia("storage/emulated/0/", this)
                 fileList.clear()
                 fileList.addAll(getAllVideoFiles(contentResolver).map { File(it) })
+                progressBar.visibility = View.GONE
                 recyclerView.adapter = VideoAdapter(fileList)
+
             }
             return@setOnItemSelectedListener true
         }
