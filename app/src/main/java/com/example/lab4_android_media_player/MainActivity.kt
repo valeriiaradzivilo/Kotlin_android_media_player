@@ -3,7 +3,10 @@ package com.example.lab4_android_media_player
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.READ_MEDIA_AUDIO
 import android.Manifest.permission.READ_MEDIA_VIDEO
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.ContentResolver
+import android.content.Context
+import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -54,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             // For older Android versions, use READ_EXTERNAL_STORAGE permission
             requestPermissionLauncher.launch(READ_EXTERNAL_STORAGE)
+            requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
         }
 
 
@@ -65,6 +69,7 @@ class MainActivity : AppCompatActivity() {
                 fileList.addAll(getAllMp3Files(contentResolver).map { File(it) })
                 recyclerView.adapter = Mp3Adapter(fileList)
             } else {
+                scanForMedia("storage/emulated/0/", this)
                 fileList.clear()
                 fileList.addAll(getAllVideoFiles(contentResolver).map { File(it) })
                 recyclerView.adapter = VideoAdapter(fileList)
@@ -127,7 +132,7 @@ class MainActivity : AppCompatActivity() {
         // Define the columns you want to retrieve
         val projection = arrayOf(
             MediaStore.Video.Media._ID,
-            MediaStore.Video.Media.TITLE,
+            MediaStore.Video.Media.DISPLAY_NAME,
             MediaStore.Video.Media.DATA
         )
 
@@ -136,13 +141,12 @@ class MainActivity : AppCompatActivity() {
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
             projection,
             null,
-            null,
-            null // No need for sorting in this case
+            null
         )
 
         videoCursor?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)
+            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
             val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
 
             while (cursor.moveToNext()) {
@@ -164,5 +168,12 @@ class MainActivity : AppCompatActivity() {
 
         return videoFiles
     }
+
+    private fun scanForMedia(filePath: String, context: Context) {
+        MediaScannerConnection.scanFile(context, arrayOf(filePath), null) { _, uri ->
+            Log.d(TAG, "Media scan complete: $uri")
+        }
+    }
+
 
 }
