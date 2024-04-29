@@ -1,6 +1,7 @@
 package com.example.lab4_android_media_player
 
-import android.content.Intent
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,12 +27,33 @@ class Mp3Adapter(private val mp3Files: List<File>) :
 
     override fun onBindViewHolder(holder: Mp3ViewHolder, position: Int) {
         holder.tvMp3Name.text = mp3Files[position].name
-        holder.mp3PlayButton.setOnClickListener {
-            // Play the mp3 file
-            val intent = Intent(holder.itemView.context, MusicPlayerService::class.java).apply {
-                putExtra("data", mp3Files[position].toUri().toString())
+        val mediaPlayer = MediaPlayer().apply {
+            setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .build()
+            )
+            setDataSource(holder.itemView.context, mp3Files[position].toUri())
+            prepare()
+            holder.mp3PlayButton.setOnClickListener {
+
+
+                if (holder.mp3PlayButton.drawable.constantState == ContextCompat.getDrawable(
+                        holder.itemView.context,
+                        android.R.drawable.ic_media_pause
+                    )?.constantState
+                ) {
+                    stop()
+
+                    holder.mp3PlayButton.setImageResource(android.R.drawable.ic_media_play)
+                } else {
+                    start()
+
+                    holder.mp3PlayButton.setImageResource(android.R.drawable.ic_media_pause)
+                }
+
             }
-            ContextCompat.startForegroundService(holder.itemView.context, intent)
         }
     }
 

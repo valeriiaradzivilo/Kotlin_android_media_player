@@ -1,11 +1,19 @@
 package com.example.lab4_android_media_player
 
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.READ_MEDIA_AUDIO
+import android.Manifest.permission.READ_MEDIA_VIDEO
 import android.content.ContentResolver
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.File
 
 
@@ -15,25 +23,59 @@ class MainActivity : AppCompatActivity() {
         const val TAG = "MainActivity"
     }
 
-    private val audioList = mutableListOf<File>()
+    private val fileList = mutableListOf<File>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-        val mp3Files = getAllMp3Files(contentResolver)
-        print(mp3Files)
-
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        //Get file from uri
+        val requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                // Check if the permission is granted
+                if (isGranted) {
+                    // Show a toast message for permission granted
 
-        for (mp3File in mp3Files) {
-            audioList.add(File(mp3File))
+                    Toast.makeText(this, "Permission Granted", Toast.LENGTH_LONG).show()
+                } else {
+                    // Show a toast message asking the user to grant the permission
+                    Toast.makeText(this, "Please grant permission", Toast.LENGTH_LONG).show()
+
+                }
+            }
+        // Check if the Android version is TIRAMISU or newer
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Use the requestPermessionLauncher to request the READ_MEDIA_IMAGES permission
+            requestPermissionLauncher.launch(READ_MEDIA_VIDEO)
+            requestPermissionLauncher.launch(READ_MEDIA_AUDIO)
+        } else {
+            // For older Android versions, use READ_EXTERNAL_STORAGE permission
+            requestPermissionLauncher.launch(READ_EXTERNAL_STORAGE)
         }
-        recyclerView.adapter = Mp3Adapter(audioList)
+
+
+        val bottomAppBar: BottomNavigationView = findViewById(R.id.bottom_navigation)
+        bottomAppBar.setOnItemSelectedListener { item ->
+            if (item.itemId == R.id.nav_music) {
+
+                fileList.clear()
+                fileList.addAll(getAllMp3Files(contentResolver).map { File(it) })
+                recyclerView.adapter = Mp3Adapter(fileList)
+            } else {
+                fileList.clear()
+                fileList.addAll(getAllVideoFiles(contentResolver).map { File(it) })
+                recyclerView.adapter = VideoAdapter(fileList)
+            }
+            return@setOnItemSelectedListener true
+        }
+
+
+
+        bottomAppBar.selectedItemId = R.id.nav_music
+
 
     }
 
@@ -49,9 +91,9 @@ class MainActivity : AppCompatActivity() {
 
         // Query MediaStore for audio files
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
-        val sortOrder = "${MediaStore.Audio.Media.DEFAULT_SORT_ORDER}"
+        val sortOrder = MediaStore.Audio.Media.DEFAULT_SORT_ORDER
 
-        val cursor = contentResolver.query(
+        val mediaCursor = contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
             projection,
             selection,
@@ -59,7 +101,7 @@ class MainActivity : AppCompatActivity() {
             sortOrder
         )
 
-        cursor?.use { cursor ->
+        mediaCursor?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
             val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
@@ -79,5 +121,48 @@ class MainActivity : AppCompatActivity() {
         return mp3Files
     }
 
+    private fun getAllVideoFiles(contentResolver: ContentResolver): List<String> {
+        val videoFiles = mutableListOf<String>()
+
+        // Define the columns you want to retrieve
+        val projection = arrayOf(
+            MediaStore.Video.Media._ID,
+            MediaStore.Video.Media.TITLE,
+            MediaStore.Video.Media.DATA
+        )
+
+        // Query MediaStore for video files
+        val videoCursor = contentResolver.query(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            null,
+            null,
+            null // No need for sorting in this case
+        )
+
+        videoCursor?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)
+            val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
+
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idColumn)
+                val name = cursor.getString(nameColumn)
+                val path = cursor.getString(pathColumn)
+
+                // You can filter by file extension if needed
+                if (name.endsWith(".mp4", ignoreCase = true) ||
+                    name.endsWith(".mov", ignoreCase = true)
+                ) {
+                    videoFiles.add(path)
+                }
+            }
+        }
+
+        // Log the number of video files retrieved
+        Log.d(TAG, "Number of video files: ${videoFiles.size}")
+
+        return videoFiles
+    }
 
 }

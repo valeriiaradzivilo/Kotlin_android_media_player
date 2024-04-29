@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
@@ -18,8 +19,8 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         tools:targetApi="31">
 
-        <service android:name=".MusicPlayerService" />
-        
+        <!--        <service android:name=".MusicPlayerService" />-->
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
