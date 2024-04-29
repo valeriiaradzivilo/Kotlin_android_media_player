@@ -5,4 +5,8 @@
     <string name="tap_icon_to_play_audio">Tap icon to play audio</string>
     <string name="cover">Cover</string>
     <string name="pauses_the_song">Pauses the song</string>
+    <string name="open_internet_link">Open internet link</string>
+    <string name="enter_media_link_here">Enter media link here</string>
+    <string name="pause">Pause</string>
+    <string name="play">Play</string>
 </resources>

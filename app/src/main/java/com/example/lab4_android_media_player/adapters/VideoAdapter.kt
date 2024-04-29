@@ -1,4 +1,4 @@
-package com.example.lab4_android_media_player
+package com.example.lab4_android_media_player.adapters
 
 import android.net.Uri
 import android.view.LayoutInflater
@@ -8,6 +8,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.VideoView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.lab4_android_media_player.R
 import java.io.File
 
 class VideoAdapter(private val videoFiles: List<File>) :

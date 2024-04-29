@@ -1,4 +1,4 @@
-package com.example.lab4_android_media_player
+package com.example.lab4_android_media_player.adapters
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
+import com.example.lab4_android_media_player.R
 import java.io.File
 
 class Mp3Adapter(private val mp3Files: List<File>) :
